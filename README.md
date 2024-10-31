@@ -13,7 +13,7 @@ Installation
 Clone the repo:
 bash
 Copy code
-git clone https://github.com/your-username/parking-payment-system.git
+git clone https://github.com/Brian-Getenga/Parking-System.git
 Database Setup: Run database.sql in your MySQL database.
 Config: Set database details in config.php.
 Run: Access via http://localhost/parking-payment-system on a local server.
