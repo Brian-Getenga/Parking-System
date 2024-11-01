@@ -43,8 +43,13 @@ $user_id = $_SESSION['user']['user_id'];
             background: rgba(0, 0, 0, 0.5);
             z-index: 1;
         }
-        .hero-section h2, .hero-section p {
+        .hero-section h2{
             z-index: 2;
+            font-size: 3.5rem;
+        }
+        .hero-section p {
+            z-index: 2;
+            font-size: 1.2rem;
         }
         .reservation-section {
             margin-top: 1.5rem;
@@ -86,7 +91,14 @@ $user_id = $_SESSION['user']['user_id'];
 <div class="container">
     <!-- Filter Section -->
     <div class="filter-section">
-        <input type="text" id="searchInput" onkeyup="filterReservations()" class="form-control" placeholder="Search by license plate, area...">
+        <div class="input-group">
+            <input type="text" id="searchInput" onkeyup="filterReservations()" class="form-control" placeholder="Search by license plate, area...">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" onclick="filterReservations()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
         <select id="filterType" class="form-control" onchange="filterReservations()">
             <option value="all">All Reservations</option>
             <option value="daily">Daily Parking</option>

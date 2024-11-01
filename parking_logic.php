@@ -1,18 +1,24 @@
-<?php
-session_start(); // Start the session
+session_start();
 
 // Include the database connection
-require 'config.php'; // Ensure this file contains the PDO connection setup
+require 'config.php';
 
-$message = ''; // Variable to hold the message to be displayed
+$message = '';
 
 try {
     // Check if form data is submitted
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $carLicense = $_POST['carLicense'];
-        $parkingArea = $_POST['parkingArea'];
-        $price = $_POST['price']; // Price sent from the form
-        $paymentMethod = $_POST['paymentMethod'];
+        $carLicense = trim($_POST['carLicense']);
+        $parkingArea = trim($_POST['parkingArea']);
+        $price = trim($_POST['price']);
+        $paymentMethod = trim($_POST['paymentMethod']);
+
+        // Validate and sanitize price to ensure it's numeric and properly formatted
+        if (!is_numeric($price)) {
+            throw new Exception('Invalid price format. Please enter a valid number.');
+        }
+
+        $price = number_format((float)$price, 2, '.', ''); // Format as decimal
 
         // Prepare SQL insert statement
         $stmt = $pdo->prepare("INSERT INTO daily_parking (car_license, parking_area, price, payment_method) VALUES (:car_license, :parking_area, :price, :payment_method)");
@@ -25,13 +31,15 @@ try {
 
         // Execute the statement
         if ($stmt->execute()) {
-            $message = 'Parking reservation successful!'; // Success message
+            $message = 'Parking reservation successful!';
         } else {
-            $message = 'Error reserving parking. Please try again.'; // Error message
+            $message = 'Error reserving parking. Please try again.';
         }
     }
 } catch (PDOException $e) {
     $message = 'Connection failed: ' . $e->getMessage();
+} catch (Exception $e) {
+    $message = $e->getMessage();
 }
 
 // Include HTML to display modal
@@ -47,11 +55,8 @@ try {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation Bar -->
     <?php include 'nav_bar.php' ?>
 
-    <!-- Your content here -->
-    
     <!-- Modal for displaying messages -->
     <div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -63,7 +68,7 @@ try {
                     </button>
                 </div>
                 <div class="modal-body">
-                    <?php echo $message; ?> <!-- Display message here -->
+                    <?php echo $message; ?>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -78,7 +83,6 @@ try {
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        // Show the modal after the page loads if there's a message
         $(document).ready(function() {
             <?php if (!empty($message)): ?>
                 $('#messageModal').modal('show');

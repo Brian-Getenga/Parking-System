@@ -1,51 +1,77 @@
 <?php
 require_once 'config.php'; // Database connection
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Collect and sanitize form inputs
-    $fullName = htmlspecialchars(trim($_POST['fullName'] ?? ''));
-    $regVehiclePlate = htmlspecialchars(trim($_POST['regVehiclePlate'] ?? ''));
-    $regEmail = filter_var(trim($_POST['regEmail'] ?? ''), FILTER_VALIDATE_EMAIL);
-    $regPhone = htmlspecialchars(trim($_POST['regPhone'] ?? ''));
-    $regPassword = $_POST['regPassword'] ?? '';
+class RegisterModel {
+    private $pdo;
+    public $errors = [];
 
-    // Validate required fields
-    if (!$fullName || !$regVehiclePlate || !$regEmail || !$regPhone || !$regPassword) {
-        echo "<script>alert('All fields are required. Please fill out all fields.'); window.location.href='register.php';</script>";
-        exit();
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
     }
 
-    // Hash the password
-    $hashedPassword = password_hash($regPassword, PASSWORD_DEFAULT);
+    public function validateAndRegister($data) {
+        $fullName = htmlspecialchars(trim($data['fullName'] ?? ''));
+        $regVehiclePlate = htmlspecialchars(trim($data['regVehiclePlate'] ?? ''));
+        $regEmail = filter_var(trim($data['regEmail'] ?? ''), FILTER_VALIDATE_EMAIL);
+        $regPhone = htmlspecialchars(trim($data['regPhone'] ?? ''));
+        $regPassword = $data['regPassword'] ?? '';
 
-    try {
-        // Check if email or vehicle plate already exists in the database
-        $checkQuery = $pdo->prepare("SELECT * FROM users WHERE email = :email OR vehicle_plate = :vehicle_plate");
-        $checkQuery->execute(['email' => $regEmail, 'vehicle_plate' => $regVehiclePlate]);
+        // Validate required fields
+        if (!$fullName || !$regVehiclePlate || !$regEmail || !$regPhone || !$regPassword) {
+            $this->errors[] = "All fields are required.";
+        }
 
-        if ($checkQuery->rowCount() > 0) {
-            echo "<script>alert('Email or Vehicle Plate already registered.'); window.location.href='register.php';</script>";
-        } else {
-            // Insert new user record into Users table
-            $query = "INSERT INTO users (full_name, email, phone, vehicle_plate, password_hash) VALUES (:full_name, :email, :phone, :vehicle_plate, :password_hash)";
-            $stmt = $pdo->prepare($query);
+        // Additional validations
+        if (!filter_var($regEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->errors[] = "Invalid email format.";
+        }
+        if (!preg_match('/^[0-9]{10}$/', $regPhone)) {
+            $this->errors[] = "Invalid phone number format. Please enter 10 digits.";
+        }
+
+        // Return if there are validation errors
+        if (!empty($this->errors)) {
+            return false;
+        }
+
+        // Check for existing user with the same email or vehicle plate
+        $existingUser = $this->checkExistingUser($regEmail, $regVehiclePlate);
+        if ($existingUser) {
+            $this->errors[] = "Email or Vehicle Plate already registered.";
+            return false;
+        }
+
+        // Hash the password
+        $hashedPassword = password_hash($regPassword, PASSWORD_DEFAULT);
+
+        // Insert the new user
+        return $this->insertUser($fullName, $regEmail, $regPhone, $regVehiclePlate, $hashedPassword);
+    }
+
+    private function checkExistingUser($email, $vehiclePlate) {
+        $query = "SELECT * FROM users WHERE email = :email OR vehicle_plate = :vehicle_plate";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['email' => $email, 'vehicle_plate' => $vehiclePlate]);
+        return $stmt->fetch();
+    }
+
+    private function insertUser($fullName, $email, $phone, $vehiclePlate, $passwordHash) {
+        try {
+            $query = "INSERT INTO users (full_name, email, phone, vehicle_plate, password_hash)
+                      VALUES (:full_name, :email, :phone, :vehicle_plate, :password_hash)";
+            $stmt = $this->pdo->prepare($query);
             $stmt->execute([
                 'full_name' => $fullName,
-                'email' => $regEmail,
-                'phone' => $regPhone,
-                'vehicle_plate' => $regVehiclePlate,
-                'password_hash' => $hashedPassword
+                'email' => $email,
+                'phone' => $phone,
+                'vehicle_plate' => $vehiclePlate,
+                'password_hash' => $passwordHash
             ]);
 
-            if ($stmt->rowCount()) {
-                echo "<script>alert('Registration successful!'); window.location.href='login.php';</script>";
-            } else {
-                echo "<script>alert('Registration failed. Please try again.'); window.location.href='register.php';</script>";
-            }
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            $this->errors[] = "Database error: " . htmlspecialchars($e->getMessage());
+            return false;
         }
-    } catch (PDOException $e) {
-        // Handle database errors
-        echo "<script>alert('Database error: " . htmlspecialchars($e->getMessage()) . "'); window.location.href='register.php';</script>";
     }
 }
-?>

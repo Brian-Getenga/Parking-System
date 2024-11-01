@@ -17,6 +17,8 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="parking.php">Parking</a>
+                </li> <li class="nav-item">
+                    <a class="nav-link" href="reservations.php">Reservations</a>
                 </li>
 
                 <?php if (isset($_SESSION['user'])): ?>

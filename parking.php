@@ -1,6 +1,12 @@
 <?php
 session_start(); // Start the session to access user data
 
+// Check if user is logged in
+if (!isset($_SESSION['user'])) { // Assuming 'user_id' is stored in session upon login
+    header('Location: login.php'); // Redirect to login page
+    exit(); // Stop further execution
+}
+
 // Include the database connection
 require 'config.php'; // Ensure this file contains the PDO connection setup
 
@@ -107,7 +113,7 @@ try {
 
 <body>
     <!-- Navigation Bar -->
-    <?php include 'nav_bar.php' ?>
+    <?php include 'nav_bar.php'; ?>
 
     <!-- Hero Section -->
     <div class="hero">
@@ -222,26 +228,33 @@ try {
         const parkingPrices = {
             "CBD": "200 KES",
             "Westlands": "150 KES",
-            "Karen": "180 KES",
-            "Kasarani": "120 KES",
-            "Upper Hill": "170 KES"
+            "Karen": "300 KES",
+            "Kasarani": "100 KES",
+            "Upper Hill": "250 KES"
         };
 
-        document.getElementById('parkingArea').addEventListener('change', function () {
-            const selectedArea = this.value;
-            if (selectedArea) {
-                document.getElementById('price').value = parkingPrices[selectedArea]; // Set price based on selection
-                document.getElementById('priceLabel').style.display = 'block'; // Show the price label
-                document.getElementById('price').style.display = 'block'; // Show the price input
+        // Update the price field based on selected area
+        document.getElementById("parkingArea").addEventListener("change", function () {
+            const area = this.value;
+            const priceInput = document.getElementById("price");
+            const priceLabel = document.getElementById("priceLabel");
+            if (area) {
+                priceInput.value = parkingPrices[area]; // Set price based on selected area
+                priceInput.style.display = "block"; // Show price input
+                priceLabel.style.display = "block"; // Show price label
+            } else {
+                priceInput.value = "";
+                priceInput.style.display = "none"; // Hide price input
+                priceLabel.style.display = "none"; // Hide price label
             }
         });
 
-        // Show the modal if there's a message
-        <?php if (!empty($message)): ?>
-            $(document).ready(function() {
-                $('#messageModal').modal('show');
-            });
-        <?php endif; ?>
+        // Show the modal with message if exists
+        $(document).ready(function () {
+            <?php if (!empty($message)): ?>
+                $('#messageModal').modal('show'); // Show the modal if there's a message
+            <?php endif; ?>
+        });
     </script>
 </body>
 

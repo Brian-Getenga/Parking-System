@@ -40,7 +40,6 @@
     </style>
 </head>
 <body>
-    <?php include 'nav_bar.php' ?>
     <div class="container mt-5">
         <div class="card mx-auto" style="max-width: 400px;">
             <div class="card-body">
