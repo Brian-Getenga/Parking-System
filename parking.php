@@ -10,37 +10,6 @@ if (!isset($_SESSION['user'])) { // Assuming 'user_id' is stored in session upon
 // Include the database connection
 require 'config.php'; // Ensure this file contains the PDO connection setup
 
-$message = ''; // Variable to hold the message to be displayed
-
-try {
-    // Check if form data is submitted
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $carLicense = $_POST['carLicense'];
-        $parkingArea = $_POST['parkingArea'];
-        $price = $_POST['price']; // Price sent from the form
-        $paymentMethod = $_POST['paymentMethod'];
-
-        // Prepare SQL insert statement
-        $stmt = $pdo->prepare("INSERT INTO daily_parking (car_license, parking_area, price, payment_method) VALUES (:car_license, :parking_area, :price, :payment_method)");
-
-        // Bind parameters
-        $stmt->bindParam(':car_license', $carLicense);
-        $stmt->bindParam(':parking_area', $parkingArea);
-        $stmt->bindParam(':price', $price);
-        $stmt->bindParam(':payment_method', $paymentMethod);
-
-        // Execute the statement
-        if ($stmt->execute()) {
-            $message = 'Parking reservation successful!'; // Success message
-        } else {
-            $message = 'Error reserving parking. Please try again.'; // Error message
-        }
-    }
-} catch (PDOException $e) {
-    $message = 'Connection failed: ' . $e->getMessage();
-}
-
-// HTML starts here
 ?>
 
 <!DOCTYPE html>
@@ -152,7 +121,7 @@ try {
             <div class="col-md-8">
                 <h2 class="text-center mt-5 mb-4">Daily Parking Reservation</h2>
                 <div class="reservation-form">
-                    <form action="" method="POST"> <!-- Form action points to the same page -->
+                    <form action="parking_logic.php" method="POST"> <!-- Form action points to the same page -->
                         <div class="form-group">
                             <label for="carLicense">Car License Plate</label>
                             <input type="text" class="form-control" id="carLicense" name="carLicense" placeholder="Enter your car license plate" required>
@@ -226,11 +195,11 @@ try {
     <script>
         // Prices for each parking area
         const parkingPrices = {
-            "CBD": "200 KES",
-            "Westlands": "150 KES",
-            "Karen": "300 KES",
-            "Kasarani": "100 KES",
-            "Upper Hill": "250 KES"
+            "CBD": "200.00",
+            "Westlands": "150.00",
+            "Karen": "300.00",
+            "Kasarani": "100.00",
+            "Upper Hill": "250.00"
         };
 
         // Update the price field based on selected area
