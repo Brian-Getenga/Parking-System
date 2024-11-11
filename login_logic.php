@@ -27,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'full_name' => $user['full_name'],
                 'email' => $user['email'], // Add email to session
                 'vehicle_plate' => $user['vehicle_plate'],
+                'phone' => $user['phone'],
                 // Add other user details as needed
             ];
 
